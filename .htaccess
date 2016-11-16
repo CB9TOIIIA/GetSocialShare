@@ -1,4 +1,4 @@
-php_value auto_prepend_file C:\OpenServer\domains\sysmdump\autoload.cli.php
-php_flag display_errors On
+#php_value auto_prepend_file C:\OpenServer\domains\sysmdump\autoload.cli.php
+#php_flag display_errors On
 #показать все ошибки кроме предупреждений (Notice)
-php_value error_reporting "E_ALL & ~E_NOTICE"
+#php_value error_reporting "E_ALL & ~E_NOTICE"

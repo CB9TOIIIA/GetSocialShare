@@ -23,149 +23,148 @@ $httpClient = new HttpClient([
 $mysiteurl = array('http://mysite.ru/test','http://mysite.ru/test2','http://mysite.ru/test3');
 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Получаем SMM метрики с социальных сетей</title>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Получаем SMM метрики с социальных сетей</title>
 
-  <!-- <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.js"></script>
-  <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" media="screen" title="no title">
-  <script type="text/javascript">
-  jQuery(document).ready(function($) {
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" media="screen" title="no title">
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
     $("#myTable").DataTable({language:{url:"/assets/Russian.json"}});
   });
-  </script> -->
+</script> 
 
 </head>
 <body>
-<table id="myTable" class="zebratable tablesorter tablesorter-default" role="grid">
-<thead>
-<tr>
-  <td>Дата</td>
-  <td>Title + URL</td>
-  <td>FB</td>
-  <td>VK</td>
-  <td>OK</td>
-</tr>
-</thead>
-<tbody>
+  <table id="myTable" class="zebratable tablesorter tablesorter-default" role="grid">
+    <thead>
+      <tr>
+        <td>Дата</td>
+        <td>Title + URL</td>
+        <td>FB</td>
+        <td>VK</td>
+        <td>OK</td>
+        <td>TOTAL</td>
+      </tr>
+    </thead>
+    <tbody>
 
-<?php
-$badurls = array();
+      <?php
+      $badurls = array();
 
-foreach ($mysiteurl as $mysiteurlone) {
+      foreach ($mysiteurl as $mysiteurlone) {
 
-sleep(3); // maybe
+        sleep(1); // maybe need
 
-  $fbresponse = $httpClient->request(FB_URL, [
-      'id' => $mysiteurlone,
-      'access_token' => FB_URL_ACCESS_TOKEN
-  ], 'get');
+        $fbresponse = $httpClient->request(FB_URL, [
+          'id' => $mysiteurlone,
+          'access_token' => FB_URL_ACCESS_TOKEN
+        ], 'get');
 
-  $jsonfb = $fbresponse->getJSON();
-  $fbcountar[]= $jsonfb->find('share.share_count');
-  $fbcount= $jsonfb->find('share.share_count');
-  $FB_value_title = $jsonfb->find('og_object.title');
-  $FB_value_updated_time = $jsonfb->find('og_object.updated_time');
-  $FB_value_url= $jsonfb->get('id');
+        $jsonfb = $fbresponse->getJSON();
+        $fbcountar[]= $jsonfb->find('share.share_count');
+        $fbcount= $jsonfb->find('share.share_count');
+        $FB_value_title = $jsonfb->find('og_object.title');
+        $FB_value_updated_time = $jsonfb->find('og_object.updated_time');
+        $FB_value_url= $jsonfb->get('id');
 
-  $date = date('d.m.y',strtotime($FB_value_updated_time));
+        $date = date('d.m.y',strtotime($FB_value_updated_time));
 
-  $vkresponse = $httpClient->request(VK_URL, [
-    'act' => 'count',
-    'index' => '1',
-    'url' => $mysiteurlone,
-  ], 'get');
+        $vkresponse = $httpClient->request(VK_URL, [
+          'act' => 'count',
+          'index' => '1',
+          'url' => $mysiteurlone,
+        ], 'get');
 
-  $jsonvk = $vkresponse->body;
-  preg_match('#VK.Share.count\(1, ([0-9]+)\);#', $jsonvk, $vkmatch);
-  $vkcountar[] = $vkmatch[1];
-  $vkcount = $vkmatch[1];
-
-
-  $okresponse = $httpClient->request(OK_URL, [
-    'st.cmd' => 'extLike',
-    'uid' => 'odklcnt0',
-    'ref' => $mysiteurlone,
-  ], 'get');
-
-  $jsonok = $okresponse->body;
-  preg_match("#ODKL\.updateCount\('odklcnt0'\,'([0-9]+)'\);#", $jsonok, $okmatch);
-  $okcountar[] = $okmatch[1];
-  $okcount = $okmatch[1];
-
-  if (empty($fbcount)) {
-    $fbcount = 0;
-  }
-
-  // if (empty($fbcount) || empty($vkcount) || empty($okcount)) {
-  //   $okcount = 0;
-  //   $vkcount = 0;
-  //   $fbcount = 0;
-  // }
-
-  // if ($date != '01.01.70') {
-  //
-  //   if ($fbcount != 0 && $vkcount != 0 && $okcount != 0) {
-
-    echo "<tr>
-    <td>{$date}</td>";
+        $jsonvk = $vkresponse->body;
+        preg_match('#VK.Share.count\(1, ([0-9]+)\);#', $jsonvk, $vkmatch);
+        $vkcountar[] = $vkmatch[1];
+        $vkcount = $vkmatch[1];
 
 
-    if (empty($FB_value_title && $FB_value_url)) {
-      echo "<td>{$mysiteurlone}</td>";
-    }
-    else {
-      echo "<td><a target='_blank' href='{$FB_value_url}'>{$FB_value_title}</a></td>";
-    }
+        $okresponse = $httpClient->request(OK_URL, [
+          'st.cmd' => 'extLike',
+          'uid' => 'odklcnt0',
+          'ref' => $mysiteurlone,
+        ], 'get');
 
-    echo "
-    <td>{$fbcount}</td>
-    <td>{$vkcount}</td>
-    <td>{$okcount}</td>
+        $jsonok = $okresponse->body;
+        preg_match("#ODKL\.updateCount\('odklcnt0'\,'([0-9]+)'\);#", $jsonok, $okmatch);
+        $okcountar[] = $okmatch[1];
+        $okcount = $okmatch[1];
 
-    </tr>";
-
-  }
-
-  if ($date == '01.01.70' || $fbcount == '0') {
-
-    $badurls[] = $mysiteurlone;
-
-}
+        if (empty($fbcount)) {
+          $fbcount = 0;
+        }
 
 
+        echo "<tr>
+        <td>{$date}</td>";
 
-// }
 
-// }
+        if (empty($FB_value_title && $FB_value_url)) {
+          $page_content = file_get_contents($mysiteurlone);
+          preg_match_all( "|<title>(.*)</title>|sUSi", $page_content, $titles);
+          echo "<td><a target='_blank' href='{$FB_value_url}'>{$titles[1][0]}</a></td>";
+        }
+        else {
+          echo "<td><a target='_blank' href='{$FB_value_url}'>{$FB_value_title}</a></td>";
 
-?>
+        }
 
-</tbody>
-</table>
+        $total = $fbcount + $vkcount + $okcount;
+//        $totalall[] = $fbcount + $vkcount + $okcount;
+        echo "
+        <td>{$fbcount}</td>
+        <td>{$vkcount}</td>
+        <td>{$okcount}</td>
+        <td>{$total}</td>
 
-<?php
-$fbar = array_sum($fbcountar);
-$vkar = array_sum($vkcountar);
-$okar = array_sum($okcountar);
+        </tr>";
 
-echo "<div style='clear:both'></div>";
-echo "<br>";
-echo "<b>Итого: FB {$fbar} / VK {$vkar} / OK {$okar} </b>";
-echo "<hr>";
-echo "<br>";
-echo "Плохие url: ";
-echo "<br>";
-foreach ($badurls as $badurl) {
-  echo $badurl;
+      }
+
+      if ($date == '01.01.70' || $fbcount == '0') {
+
+        $badurls[] = $mysiteurlone;
+
+      }
+
+
+      ?>
+
+    </tbody>
+  </table>
+
+  <?php
+  $fbar = array_sum($fbcountar);
+  $vkar = array_sum($vkcountar);
+  $okar = array_sum($okcountar);
+//  $totalall = array_sum($totalall);
+
+  echo "<div style='clear:both'></div>";
   echo "<br>";
-}
-?>
+  echo "<b>Итого: FB {$fbar} / VK {$vkar} / OK {$okar} </b>";
+  echo "<br>";
+  $allsoc = $fbar+$vkar+$okar;
+  echo "<b>Общее кол-во share: {$allsoc} </b>";
+  // echo "<br>";
+  // echo "<b>Общее total: {$totalall} </b>";
+  echo "<hr>";
+  echo "<br>";
+  echo "Плохие url: ";
+  echo "<br>";
+  foreach ($badurls as $badurl) {
+    echo $badurl;
+    echo "<br>";
+  }
+  ?>
 
 </body>
 </html>
